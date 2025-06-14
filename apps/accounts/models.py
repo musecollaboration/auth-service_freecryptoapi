@@ -1,3 +1,4 @@
+from django.core.validators import validate_email
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 
@@ -16,7 +17,7 @@ class User(AbstractBaseUser, PermissionsMixin, BaseModel):
     """
     Модель пользователя
     """
-    email = models.EmailField(max_length=255, unique=True)
+    email = models.EmailField(max_length=255, unique=True, validators=[validate_email])
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     is_superuser = models.BooleanField(default=False)

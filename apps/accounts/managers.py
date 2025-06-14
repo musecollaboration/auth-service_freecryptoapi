@@ -1,6 +1,8 @@
 from django.contrib.auth.models import BaseUserManager
+from django.core.validators import validate_email
 
 from apps.common.managers import GetOrNoneManager
+from django.core.exceptions import ValidationError
 
 
 class CustomUserManager(GetOrNoneManager, BaseUserManager):
@@ -19,6 +21,11 @@ class CustomUserManager(GetOrNoneManager, BaseUserManager):
         """
         if not email:
             raise ValueError('Email обязателен')
+        
+        try:
+            validate_email(email)  # Проверяем email перед сохранением
+        except ValidationError:
+            raise ValueError("Введите корректный email")
 
         email = self.normalize_email(email)
         user = self.model(email=email, **extra_fields)
