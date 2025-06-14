@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*.sqlite3
+*.log
+
+# Django
+db.sqlite3
+media/
+staticfiles/
+
+# Секреты и конфиги
+.env
+*.env
+
+# Виртуальное окружение
+venv/
+.env/
+.venv/
+
+# IDE и редакторы
+.idea/
+.vscode/
+
+# Системные файлы
+.DS_Store
+
+.pylintrc
