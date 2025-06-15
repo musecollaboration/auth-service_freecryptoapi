@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+from datetime import timedelta
 import os
 from pathlib import Path
 from dotenv import load_dotenv
@@ -44,6 +45,8 @@ INSTALLED_APPS = [
     'django_extensions',
     'rest_framework',
     'drf_spectacular',
+    'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
 
     'apps.common.apps.CommonConfig',
     'apps.accounts.apps.AccountsConfig',
@@ -143,6 +146,10 @@ SHELL_PLUS = "ipython"  # Использует IPython при запуске `py
 # Основные настройки DRF
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",  # Генерация OpenAPI схемы через drf-spectacular
+
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',   # JWT-аутентификация
+    ],
 }
 
 # Настройки API-документации DRF Spectacular
@@ -153,4 +160,12 @@ SPECTACULAR_SETTINGS = {
     "SWAGGER_UI_SETTINGS": {
         "persistAuthorization": True,  # не сбрасывать авторизацию при перезагрузке страницы
     },
+}
+
+# Настройки JWT
+SIMPLE_JWT = {
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=7),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=30),
 }

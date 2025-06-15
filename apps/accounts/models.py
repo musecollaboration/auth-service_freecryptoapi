@@ -1,6 +1,7 @@
 from django.core.validators import validate_email
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
+from django.contrib.auth.hashers import check_password
 
 from apps.accounts.managers import CustomUserManager
 from apps.common.models import BaseModel
@@ -30,15 +31,6 @@ class User(AbstractBaseUser, PermissionsMixin, BaseModel):
     def __str__(self):
         return f"{self.email} - {self.account_type}"
 
-    def save(self, *args, **kwargs):
-        if User.objects.get_or_none(pk=self.pk):
-            old_password = User.objects.get(pk=self.pk).password
-            if self.password != old_password:
-                self.set_password(self.password)
-        else:  
-            self.set_password(self.password)
-
-        super().save(*args, **kwargs)  
 
 
 # python manage.py makemigrations
