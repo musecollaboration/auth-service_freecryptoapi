@@ -4,6 +4,8 @@ from django.core.exceptions import ValidationError
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 
+from drf_spectacular.utils import extend_schema
+
 from apps.accounts.models import User
 
 
@@ -54,3 +56,12 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['account_type'] = user.account_type    # Добавление поля account_type в токен
 
         return token
+
+
+class ChangePasswordSerializer(serializers.Serializer):
+    """
+    Сериализатор для изменения пароля
+    """
+    old_password = serializers.CharField()
+    new_password = serializers.CharField()
+
