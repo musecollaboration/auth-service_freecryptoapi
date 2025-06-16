@@ -1,3 +1,4 @@
+from math import e
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
 from apps.accounts.serializers import MyTokenObtainPairSerializer
@@ -49,6 +50,8 @@ class ChangePasswordAPIView(APIView):
 
         if not user.check_password(old_password):
             return Response({"error": "Старый пароль неверный"}, status=400)
+        elif old_password == new_password:
+            return Response({"error": "Старый и новый пароли совпадают"}, status=400)
 
         validate_password(new_password, user)  # Проверка сложности пароля
         user.set_password(new_password)        # Хеширование нового пароля
