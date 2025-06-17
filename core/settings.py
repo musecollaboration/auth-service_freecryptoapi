@@ -169,3 +169,18 @@ SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=7),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=30),
 }
+
+# Настройки кэша
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache', 
+        'LOCATION': 'redis://localhost:6379/1',                     # 1 - основной кэш
+    },
+    'cache-for-ratelimiting': {
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        'LOCATION': 'redis://localhost:6379/2',                     # 2 - кэш для ratelimit
+    },
+}
+
+# Настройки ratelimit
+RATELIMIT_USE_CACHE = 'cache-for-ratelimiting'  # Привязываем ratelimit к отдельному кэшу

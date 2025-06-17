@@ -1,4 +1,3 @@
-from math import e
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
 from apps.accounts.serializers import MyTokenObtainPairSerializer
@@ -9,11 +8,15 @@ from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth.password_validation import validate_password
 
 from drf_spectacular.utils import extend_schema
+from django_ratelimit.decorators import ratelimit
+from django.utils.decorators import method_decorator
+
 
 from apps.accounts.serializers import CreateUserSerializer, ChangePasswordSerializer
 from apps.accounts.models import User
 
 
+@method_decorator(ratelimit(key='ip', rate='1/12h', block=True), name='create')  # Ограничение количества запросов 1 раз в 12 часов
 class RegisterAPIView(CreateModelMixin, GenericViewSet):
     queryset = User.objects.all()
     serializer_class = CreateUserSerializer
@@ -36,7 +39,7 @@ class MyTokenObtainPairView(TokenObtainPairView):
 
 
 class ChangePasswordAPIView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]    # Только аутентифицированные пользователи могут изменять пароль
 
     @extend_schema(
         summary="Изменение пароля",
