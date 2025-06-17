@@ -19,7 +19,7 @@ from django.conf import settings
 import jwt
 
 
-@method_decorator(ratelimit(key='ip', rate='20/1m', block=True), name='create')  # Ограничение количества запросов 1 раз в 12 часов
+@method_decorator(ratelimit(key='ip', rate='50/1m', block=True), name='create')  # Ограничение количества запросов 50 раз в 1 минуту
 class RegisterAPIView(CreateModelMixin, GenericViewSet):
     queryset = User.objects.all()
     serializer_class = CreateUserSerializer
@@ -31,12 +31,12 @@ class RegisterAPIView(CreateModelMixin, GenericViewSet):
     def create(self, request, *args, **kwargs):
         response = super().create(request, *args, **kwargs)
 
-        return Response({"message": "Пользователь успешно зарегистрирован"}, status=201)
+        return Response({"message": "Пользователь успешно зарегистрирован для активации подтвердите email"}, status=201)
 
 
 class MyTokenObtainPairView(TokenObtainPairView):
     """
-     API для получения токена.
+     Эндпоинт для получения токена.
     """
     serializer_class = MyTokenObtainPairSerializer
 
@@ -69,7 +69,7 @@ class ChangePasswordAPIView(APIView):
 class VerifyEmailView(APIView):
     @extend_schema(
         summary="Подтверждение email",
-        description="API для подтверждения email пользователя",
+        description="Эндпоинт для подтверждения email пользователя",
         parameters=[
             OpenApiParameter(
                 name="token",
@@ -82,7 +82,7 @@ class VerifyEmailView(APIView):
     )
     def get(self, request):
         """
-        API для подтверждения email.
+        Эндпоинт для подтверждения email.
         :param request: запрос
         :return: ответ
         """
