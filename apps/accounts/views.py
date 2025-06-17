@@ -18,7 +18,7 @@ from apps.accounts.models import User
 from django.conf import settings
 import jwt
 
-teg 
+
 @method_decorator(ratelimit(key='ip', rate='20/1m', block=True), name='create')  # Ограничение количества запросов 1 раз в 12 часов
 class RegisterAPIView(CreateModelMixin, GenericViewSet):
     queryset = User.objects.all()
