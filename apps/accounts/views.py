@@ -7,16 +7,19 @@ from rest_framework.mixins import CreateModelMixin
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth.password_validation import validate_password
 
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, OpenApiParameter
+from drf_spectacular.types import OpenApiTypes
 from django_ratelimit.decorators import ratelimit
 from django.utils.decorators import method_decorator
-
 
 from apps.accounts.serializers import CreateUserSerializer, ChangePasswordSerializer
 from apps.accounts.models import User
 
+from django.conf import settings
+import jwt
 
-@method_decorator(ratelimit(key='ip', rate='1/12h', block=True), name='create')  # Ограничение количества запросов 1 раз в 12 часов
+teg 
+@method_decorator(ratelimit(key='ip', rate='20/1m', block=True), name='create')  # Ограничение количества запросов 1 раз в 12 часов
 class RegisterAPIView(CreateModelMixin, GenericViewSet):
     queryset = User.objects.all()
     serializer_class = CreateUserSerializer
@@ -61,3 +64,37 @@ class ChangePasswordAPIView(APIView):
         user.save()
 
         return Response({"message": "Пароль успешно изменен"}, status=200)
+
+
+class VerifyEmailView(APIView):
+    @extend_schema(
+        summary="Подтверждение email",
+        description="API для подтверждения email пользователя",
+        parameters=[
+            OpenApiParameter(
+                name="token",
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY,
+                description="Токен для подтверждения email",
+            ),
+        ],
+        responses={200: OpenApiTypes.OBJECT, 400: OpenApiTypes.OBJECT},
+    )
+    def get(self, request):
+        """
+        API для подтверждения email.
+        :param request: запрос
+        :return: ответ
+        """
+        token = request.GET.get("token")
+
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+            user = User.objects.get(id=payload["user_id"])
+            user.is_verified = True
+            user.save()
+            return Response({"message": "Email успешно подтверждён!"})
+        except jwt.ExpiredSignatureError:
+            return Response({"error": "Токен истёк"}, status=400)
+        except jwt.InvalidTokenError:
+            return Response({"error": "Некорректный токен"}, status=400)

@@ -184,3 +184,18 @@ CACHES = {
 
 # Настройки ratelimit
 RATELIMIT_USE_CACHE = 'cache-for-ratelimiting'  # Привязываем ratelimit к отдельному кэшу
+
+
+# Настройки электронной почты
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
+# Конфигурация сервера электронной почты
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = 'cahdro2155@gmail.com'
+EMAIL_HOST_PASSWORD = 'hhpi udgx jwee hlby'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+SERVER_EMAIL = EMAIL_HOST_USER
+
+SITE_URL = 'http://localhost:8000'  # Измените на реальный URL вашего сайта, когда будете деплоить

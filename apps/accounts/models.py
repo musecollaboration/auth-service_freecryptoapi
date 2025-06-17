@@ -23,6 +23,7 @@ class User(AbstractBaseUser, PermissionsMixin, BaseModel):
     is_active = models.BooleanField(default=True)
     is_superuser = models.BooleanField(default=False)
     account_type = models.CharField(max_length=10, choices=ACCOUNT_TYPE_CHOICES, default="FREE")
+    is_verified = models.BooleanField(default=False)
 
     USERNAME_FIELD = "email"
 
