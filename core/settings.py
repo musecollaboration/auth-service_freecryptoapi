@@ -192,10 +192,10 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 # Конфигурация сервера электронной почты
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_HOST_USER = 'cahdro2155@gmail.com'
-EMAIL_HOST_PASSWORD = 'hhpi udgx jwee hlby'
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 SERVER_EMAIL = EMAIL_HOST_USER
 
-SITE_URL = 'http://localhost:8000'  # Измените на реальный URL вашего сайта, когда будете деплоить
+SITE_URL = 'http://localhost:8000'  # Измените на реальный URL вашего сайта, при деплое

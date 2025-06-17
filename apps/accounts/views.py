@@ -19,7 +19,7 @@ from django.conf import settings
 import jwt
 
 
-@method_decorator(ratelimit(key='ip', rate='50/1m', block=True), name='create')  # Ограничение количества запросов 50 раз в 1 минуту
+@method_decorator(ratelimit(key='ip', rate='1/24h', block=True), name='create')  # Ограничение количества запросов 1 раз в 24 часа
 class RegisterAPIView(CreateModelMixin, GenericViewSet):
     queryset = User.objects.all()
     serializer_class = CreateUserSerializer
@@ -36,11 +36,12 @@ class RegisterAPIView(CreateModelMixin, GenericViewSet):
 
 class MyTokenObtainPairView(TokenObtainPairView):
     """
-     Эндпоинт для получения токена.
+    Эндпоинт для получения токена.
     """
     serializer_class = MyTokenObtainPairSerializer
 
 
+@method_decorator(ratelimit(key='ip', rate='5/24h', block=True), name='patch')  # Ограничение количества запросов 5 раз в 24 часа
 class ChangePasswordAPIView(APIView):
     permission_classes = [IsAuthenticated]    # Только аутентифицированные пользователи могут изменять пароль
 
@@ -66,6 +67,7 @@ class ChangePasswordAPIView(APIView):
         return Response({"message": "Пароль успешно изменен"}, status=200)
 
 
+@method_decorator(ratelimit(key='ip', rate='1/24h', block=True), name='get')  # Ограничение количества запросов 1 раз в 24 часа
 class VerifyEmailView(APIView):
     @extend_schema(
         summary="Подтверждение email",
