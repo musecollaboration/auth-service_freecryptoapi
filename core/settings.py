@@ -10,8 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
-from celery.schedules import crontab
-import logging
+
 from datetime import timedelta
 import os
 from pathlib import Path
@@ -24,6 +23,7 @@ load_dotenv(dotenv_path=BASE_DIR / 'core' / '.env')
 
 
 # Настройки логирования
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,

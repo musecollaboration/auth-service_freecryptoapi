@@ -18,13 +18,13 @@ def send_verification_email(user_id):
     :param user_id: id пользователя, для которого нужно отправить письмо
     :return: None
     """
-    
+
     logger.info(f"Отправка письма с подтверждением аккаунта для пользователя id={user_id}")
 
     user = User.objects.get(id=user_id)
     token = generate_verification_token(user)
 
-    verification_url = f"{settings.SITE_URL}/auth/verify-email?token={token}"
+    verification_url = f"{settings.SITE_URL}/api/v1/auth/verify-email?token={token}"
     subject = "Подтверждение аккаунта"
     message = (
         f"Здравствуйте!\n\n"
@@ -77,7 +77,8 @@ def send_confirmation_email(user_id):
         logger.info(f"Пользователь найден: {user.email}")
         send_mail(
             "Ваш email успешно подтверждён!",
-            f"Спасибо, {user.email}, за подтверждение email. Теперь ваш аккаунт активирован.",
+            f"Спасибо, {user.email}, за подтверждение email. Теперь ваш аккаунт активирован.\n\n"
+            "С уважением,\nКоманда поддержки Crypto API",
             settings.DEFAULT_FROM_EMAIL,
             [user.email],
             fail_silently=False,
