@@ -18,6 +18,8 @@ from apps.accounts.models import User
 from apps.accounts.tasks import verify_email_task
 
 
+tag = 'Аутентификация'
+
 @method_decorator(ratelimit(key='ip', rate='100/24h', block=True), name='create')  # Ограничение количества запросов 1 раз в 24 часа
 class RegisterAPIView(CreateModelMixin, GenericViewSet):
     queryset = User.objects.all()
@@ -26,6 +28,7 @@ class RegisterAPIView(CreateModelMixin, GenericViewSet):
     @extend_schema(
         summary="Регистрация пользователя",
         description="Эндпоинт для регистрации пользователя",
+        tags=[tag],
     )
     def create(self, request, *args, **kwargs):
         response = super().create(request, *args, **kwargs)
@@ -47,7 +50,8 @@ class ChangePasswordAPIView(APIView):
     @extend_schema(
         summary="Изменение пароля",
         description="Эндпоинт для изменения пароля пользователя",
-        request=ChangePasswordSerializer                          # добавляем схему запроса сериализатора
+        request=ChangePasswordSerializer,                          # добавляем схему запроса сериализатора
+        tags=[tag],
     )
     def patch(self, request, *args, **kwargs):
         user = request.user
@@ -80,6 +84,7 @@ class VerifyEmailView(APIView):
             ),
         ],
         responses={200: OpenApiTypes.OBJECT, 400: OpenApiTypes.OBJECT},
+        tags=[tag],
     )
     def get(self, request):
         """
