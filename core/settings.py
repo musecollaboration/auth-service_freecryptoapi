@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import logging
 from datetime import timedelta
 import os
 from pathlib import Path
@@ -19,6 +20,34 @@ from dotenv import load_dotenv
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 load_dotenv(dotenv_path=BASE_DIR / 'core' / '.env')
+
+
+# Настройки логирования
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'celery': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -173,7 +202,7 @@ SIMPLE_JWT = {
 # Настройки кэша
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.redis.RedisCache', 
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
         'LOCATION': 'redis://localhost:6379/1',                     # 1 - основной кэш
     },
     'cache-for-ratelimiting': {
@@ -199,3 +228,15 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 SERVER_EMAIL = EMAIL_HOST_USER
 
 SITE_URL = 'http://localhost:8000'  # Измените на реальный URL вашего сайта, при деплое
+
+
+# Настройки Celery
+CELERY_BROKER_URL = 'redis://localhost:6379/3'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/3'
+
+# Временная зона для задач
+CELERY_TIMEZONE = "UTC"
+
+# Включаем отслеживание выполнения задач
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_ALWAYS_EAGER = False

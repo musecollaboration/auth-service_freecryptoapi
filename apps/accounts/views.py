@@ -15,11 +15,10 @@ from django.utils.decorators import method_decorator
 from apps.accounts.serializers import CreateUserSerializer, ChangePasswordSerializer
 from apps.accounts.models import User
 
-from django.conf import settings
-import jwt
+from apps.accounts.tasks import verify_email_task
 
 
-@method_decorator(ratelimit(key='ip', rate='1/24h', block=True), name='create')  # Ограничение количества запросов 1 раз в 24 часа
+@method_decorator(ratelimit(key='ip', rate='100/24h', block=True), name='create')  # Ограничение количества запросов 1 раз в 24 часа
 class RegisterAPIView(CreateModelMixin, GenericViewSet):
     queryset = User.objects.all()
     serializer_class = CreateUserSerializer
@@ -31,7 +30,7 @@ class RegisterAPIView(CreateModelMixin, GenericViewSet):
     def create(self, request, *args, **kwargs):
         response = super().create(request, *args, **kwargs)
 
-        return Response({"message": "Пользователь успешно зарегистрирован для активации подтвердите email"}, status=201)
+        return Response({"message": "Пользователь успешно зарегистрирован, для активации подтвердите email"}, status=201)
 
 
 class MyTokenObtainPairView(TokenObtainPairView):
@@ -41,7 +40,7 @@ class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
 
 
-@method_decorator(ratelimit(key='ip', rate='5/24h', block=True), name='patch')  # Ограничение количества запросов 5 раз в 24 часа
+@method_decorator(ratelimit(key='ip', rate='500/24h', block=True), name='patch')  # Ограничение количества запросов 5 раз в 24 часа
 class ChangePasswordAPIView(APIView):
     permission_classes = [IsAuthenticated]    # Только аутентифицированные пользователи могут изменять пароль
 
@@ -67,7 +66,7 @@ class ChangePasswordAPIView(APIView):
         return Response({"message": "Пароль успешно изменен"}, status=200)
 
 
-@method_decorator(ratelimit(key='ip', rate='1/24h', block=True), name='get')  # Ограничение количества запросов 1 раз в 24 часа
+@method_decorator(ratelimit(key='ip', rate='100/24h', block=True), name='get')  # Ограничение количества запросов 1 раз в 24 часа
 class VerifyEmailView(APIView):
     @extend_schema(
         summary="Подтверждение email",
@@ -89,14 +88,6 @@ class VerifyEmailView(APIView):
         :return: ответ
         """
         token = request.GET.get("token")
+        task_result = verify_email_task.delay(token)  # Запуск задачи для подтверждения email
 
-        try:
-            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
-            user = User.objects.get(id=payload["user_id"])
-            user.is_verified = True
-            user.save()
-            return Response({"message": "Email успешно подтверждён!"})
-        except jwt.ExpiredSignatureError:
-            return Response({"error": "Токен истёк"}, status=400)
-        except jwt.InvalidTokenError:
-            return Response({"error": "Некорректный токен"}, status=400)
+        return Response({"message": "После подтверждения email вам придет письмо об активации аккаунта"}, status=202)
