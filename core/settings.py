@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+from celery.schedules import crontab
 import logging
 from datetime import timedelta
 import os
@@ -231,12 +232,13 @@ SITE_URL = 'http://localhost:8000'  # Измените на реальный URL
 
 
 # Настройки Celery
-CELERY_BROKER_URL = 'redis://localhost:6379/3'
-CELERY_RESULT_BACKEND = 'redis://localhost:6379/3'
+CELERY_BROKER_URL = 'redis://localhost:6379/3'      # 3 - очередь для задач
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/3'  # 3 - кэш для результатов выполнения задач
 
 # Временная зона для задач
 CELERY_TIMEZONE = "UTC"
 
 # Включаем отслеживание выполнения задач
-CELERY_TASK_TRACK_STARTED = True
-CELERY_TASK_ALWAYS_EAGER = False
+CELERY_TASK_TRACK_STARTED = True           # Отслеживание начала выполнения задач
+CELERY_TASK_ALWAYS_EAGER = False           # Если False, задачи отправляются в очередь и обрабатываются воркером.
+CELERY_TASK_RESULT_EXPIRES = 3600          # Время жизни результатов задач в секундах
