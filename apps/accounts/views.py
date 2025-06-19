@@ -56,7 +56,7 @@ class ChangePasswordAPIView(APIView):
     @extend_schema(
         summary="Изменение пароля",
         description="Эндпоинт для изменения пароля пользователя только для аутентифицированных пользователей",
-        request=ChangePasswordSerializer,                          # добавляем схему запроса сериализатора
+        request=ChangePasswordSerializer,     # добавляем схему запроса сериализатора
         tags=[tag],
     )
     def patch(self, request, *args, **kwargs):

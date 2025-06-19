@@ -7,13 +7,6 @@ from apps.accounts.managers import CustomUserManager
 from apps.common.models import BaseModel
 
 
-ACCOUNT_TYPE_CHOICES = (
-    ('FREE', 'free_user'),
-    ('PREM', 'premium_user'),
-    ('ADMIN', 'admin_user'),
-)
-
-
 class User(AbstractBaseUser, PermissionsMixin, BaseModel):
     """
     Модель пользователя
@@ -22,7 +15,6 @@ class User(AbstractBaseUser, PermissionsMixin, BaseModel):
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     is_superuser = models.BooleanField(default=False)
-    account_type = models.CharField(max_length=10, choices=ACCOUNT_TYPE_CHOICES, default="FREE")
     is_verified = models.BooleanField(default=False)
 
     USERNAME_FIELD = "email"
@@ -30,8 +22,7 @@ class User(AbstractBaseUser, PermissionsMixin, BaseModel):
     objects = CustomUserManager()
 
     def __str__(self):
-        return f"{self.email} - {self.account_type}"
-
+        return f"{self.email}"
 
 
 # python manage.py makemigrations

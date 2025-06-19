@@ -173,7 +173,7 @@ def reset_password_task(user_id, new_password):
         return {"status": "error", "message": "Произошла неожиданная ошибка при сбросе пароля"}
 
 
-redis_client = redis.StrictRedis(host='localhost', port=6379, db=4)
+redis_client = redis.StrictRedis(host='localhost', port=6379, db=4)  # Используем базу 4 для Redis 
 
 
 @shared_task
@@ -185,7 +185,7 @@ def send_password_changes_email(user_id):
     """
     logger.info(f"Запуск задачи отправки письма о смене пароля, user_id={user_id}")
 
-    redis_key = f"password_changed_email_sent:{user_id}"
+    redis_key = f"password_changed_email_sent:{user_id}"  # ключ для хранения информации о отправке письма
     if redis_client.get(redis_key):
         logger.warning(f"Письмо уже отправлялось недавно пользователю id={user_id}")
         return {"status": "skipped", "message": "Письмо уже отправлено ранее"}
@@ -210,7 +210,7 @@ def send_password_changes_email(user_id):
             fail_silently=False,
         )
 
-        redis_client.setex(redis_key, 600, "sent")  # Блокировка на 10 минут
+        redis_client.setex(redis_key, 600, "sent")  # Блокировка на 10 минут отправки письма 
         logger.info(f"Письмо успешно отправлено пользователю id={user_id}")
 
         return {"status": "success", "message": "Письмо отправлено"}

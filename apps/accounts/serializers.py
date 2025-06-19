@@ -59,7 +59,11 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         :return: токен
         """
         token = super().get_token(user)
-        token['account_type'] = user.account_type    # Добавление поля account_type в токен
+
+        if user.is_superuser:
+            token["role"] = 'admin'
+        else:
+            token["role"] = 'user'
 
         return token
 

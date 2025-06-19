@@ -45,7 +45,6 @@ class CustomUserManager(GetOrNoneManager, BaseUserManager):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
         extra_fields.setdefault('is_verified', True)
-        extra_fields.setdefault('account_type', 'ADMIN')
 
         return self.create_user(email, password, **extra_fields)
     
