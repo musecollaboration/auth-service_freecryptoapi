@@ -1,8 +1,8 @@
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.core.exceptions import ValidationError
 from rest_framework import serializers
-from django.contrib.auth.password_validation import validate_password
-from rest_framework.fields import UUIDField
+from django.contrib.auth.password_validation import validate_password as django_validate_password
+
 
 
 from apps.accounts.models import User
@@ -21,7 +21,7 @@ class CreateUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'email', 'password')                     # Поля для сериализации
+        fields = ('id', 'email', 'password')               # Поля для сериализации
         extra_kwargs = {"password": {"write_only": True}}  # Скрытие пароля
 
     def validate_password(self, value):
@@ -30,7 +30,7 @@ class CreateUserSerializer(serializers.ModelSerializer):
         (менее 8 символов), или слишком простой (too common).
         """
         try:
-            validate_password(value)
+            django_validate_password(value)
         except ValidationError as e:
             custom_errors = []
             for msg in e.messages:
