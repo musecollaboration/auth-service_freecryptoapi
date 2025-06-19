@@ -8,7 +8,6 @@ from rest_framework.fields import UUIDField
 from apps.accounts.models import User
 
 
-
 class CreateUserSerializer(serializers.ModelSerializer):
     """
     Сериализатор для создания пользователя
@@ -63,7 +62,7 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['account_type'] = user.account_type    # Добавление поля account_type в токен
 
         return token
-    
+
     def validate(self, attrs):
         """
         Валидация переданных данных. Если пользователь не подтверждён, то генерирует ошибку.
@@ -75,7 +74,7 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         user = self.user
         if not user.is_verified:
             raise serializers.ValidationError("Аккаунт не подтверждён. Проверьте почту и активируйте профиль.")
-        
+
         return data
 
 
@@ -86,3 +85,17 @@ class ChangePasswordSerializer(serializers.Serializer):
     old_password = serializers.CharField(help_text="Введите ваш текущий пароль")
     new_password = serializers.CharField(help_text="Введите ваш новый пароль")
 
+
+class VerifyEmailSerializer(serializers.Serializer):
+    """
+    Сериализатор для подтверждения email
+    """
+    email = serializers.EmailField()
+
+
+class ResetPasswordConfirmSerializer(serializers.Serializer):
+    """
+    Сериализатор для подтверждения сброса пароля
+    """
+    token = serializers.CharField()
+    password = serializers.CharField()

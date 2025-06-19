@@ -4,6 +4,9 @@ import jwt
 from django.conf import settings
 from django.core.mail import send_mail
 import logging
+from rest_framework import serializers
+from django.contrib.auth.password_validation import validate_password
+import smtplib
 
 from apps.accounts.models import User
 
@@ -16,27 +19,38 @@ def send_verification_email(user_id):
     """
     celery-задача для отправки писем с подтверждением аккаунта.
     :param user_id: id пользователя, для которого нужно отправить письмо
-    :return: None
+    :return: словарь с результатом выполнения задачи
     """
-
     logger.info(f"Отправка письма с подтверждением аккаунта для пользователя id={user_id}")
 
-    user = User.objects.get(id=user_id)
-    token = generate_verification_token(user)
+    try:
+        user = User.objects.get(id=user_id)
+        token = generate_verification_token(user)
 
-    verification_url = f"{settings.SITE_URL}/api/v1/auth/verify-email?token={token}"
-    subject = "Подтверждение аккаунта"
-    message = (
-        f"Здравствуйте!\n\n"
-        "Спасибо за регистрацию на нашем сайте.\n"
-        "Пожалуйста, подтвердите свой аккаунт, перейдя по ссылке ниже (ссылка будет действительна в течение 24 часов):\n\n"
-        f"{verification_url}\n\n"
-        "Если вы не регистрировались, просто проигнорируйте это письмо.\n\n"
-        "С уважением,\nКоманда поддержки Crypto API"
-    )
+        verification_url = f"{settings.SITE_URL}/api/v1/auth/verify-email?token={token}"
+        subject = "Подтверждение аккаунта"
+        message = (
+            f"Здравствуйте!\n\n"
+            "Спасибо за регистрацию на нашем сайте.\n"
+            "Пожалуйста, подтвердите свой аккаунт, перейдя по ссылке ниже (ссылка будет действительна в течение 24 часов):\n\n"
+            f"{verification_url}\n\n"
+            "Если вы не регистрировались, просто проигнорируйте это письмо.\n\n"
+            "С уважением,\nКоманда поддержки Crypto API"
+        )
 
-    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email], fail_silently=False)
-    logger.info(f"Письмо с подтверждением отправлено пользователю id={user_id}")
+        send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email], fail_silently=False)
+        logger.info(f"Письмо с подтверждением отправлено пользователю id={user_id}")
+        return {"message": "Письмо с подтверждением отправлено", "status": 200}
+
+    except User.DoesNotExist:
+        logger.error(f"Пользователь с id={user_id} не найден")
+        return {"error": "Пользователь не найден", "status": 404}
+    except smtplib.SMTPException as e:
+        logger.error(f"Ошибка SMTP при отправке письма: {str(e)}", exc_info=True)
+        return {"error": "Ошибка при отправке письма", "status": 500}
+    except Exception as e:
+        logger.error(f"Неожиданная ошибка при отправке письма с подтверждением: {str(e)}", exc_info=True)
+        return {"error": "Произошла неожиданная ошибка при отправке письма с подтверждением", "status": 500}
 
 
 @shared_task
@@ -69,7 +83,7 @@ def send_confirmation_email(user_id):
     """
     celery-задача для отправки писем с подтверждением email.
     :param user_id: id пользователя, для которого нужно отправить письмо
-    :return: None
+    :return: словарь с результатом выполнения задачи
     """
     logger.info(f"Начало выполнения задачи send_confirmation_email для пользователя {user_id}")
     try:
@@ -88,3 +102,70 @@ def send_confirmation_email(user_id):
         logger.error(f"Ошибка при отправке письма: {str(e)}", exc_info=True)
 
     logger.info("Задача send_confirmation_email завершена")
+    return {"message": "Задача send_confirmation_email завершена", "status": 200}
+
+
+@shared_task
+def send_reset_password_email_task(user_id):
+    """
+    celery-задача для отправки письма с ссылкой для сброса пароля.
+    :param user_id: id пользователя, для которого нужно отправить письмо
+    :return: словарь с результатом выполнения задачи
+    """
+    logger.info(f"Отправка письма с ссылкой для сброса пароля для пользователя id={user_id}")
+    try:
+        user = User.objects.get(id=user_id)
+        token = generate_verification_token(user)
+        verification_url = f"{settings.SITE_URL}/api/v1/auth/reset-password-confirm?token={token}"
+        subject = "Сброс пароля"
+        message = (
+            f"Здравствуйте!\n\n"
+            "Вы запросили сброс пароля на нашем сайте.\n"
+            "Если вы не запрашивали сброс пароля, просто проигнорируйте это письмо.\n\n"
+            f"Ссылка для сброса пароля: {verification_url}\n\n"
+            "С уважением,\nКоманда поддержки Crypto API"
+        )
+        send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email], fail_silently=False)
+        logger.info(f"Письмо с ссылкой для сброса пароля отправлено пользователю id={user_id}")
+        return {"message": "Письмо с ссылкой для сброса пароля отправлено", "status": 200}
+    except User.DoesNotExist:
+        logger.error(f"Пользователь с id={user_id} не найден")
+        return {"message": "Пользователь не найден", "status": 404}
+    except Exception as e:
+        logger.error(f"Ошибка при отправке письма для сброса пароля: {str(e)}", exc_info=True)
+        return {"message": "Произошла ошибка при отправке письма", "status": 500}
+
+
+@shared_task
+def reset_password_task(user_id, new_password):
+    """
+    celery-задача для сброса пароля.
+    :param user_id: id пользователя, для которого нужно изменить пароль
+    :param new_password: новый пароль
+    :return: словарь с результатом выполнения задачи
+    """
+    logger.info(f"Сброс пароля для пользователя id={user_id}")
+    user = User.objects.get(id=user_id)
+    try:
+        validate_password(new_password, user)  # Проверка сложности пароля
+        logger.info(f"Пароль пользователя id={user_id} успешно валидирован")
+
+        user.set_password(new_password)
+        user.save()
+
+        send_mail(
+            "Ваш пароль успешно изменён!",
+            f"Спасибо, {user.email}, за сброс пароля. Теперь ваш пароль активирован.\n\n"
+            "С уважением,\nКоманда поддержки Crypto API",
+            settings.DEFAULT_FROM_EMAIL,
+            [user.email],
+            fail_silently=False,
+        )
+        logger.info(f"Пароль пользователя id={user_id} успешно изменен, письмо с подтверждением отправлено")
+        return {"status": "success", "message": "Пароль успешно изменен"}
+    except serializers.ValidationError as e:
+        logger.error(f"Ошибка при валидации пароля: {str(e)}", exc_info=True)
+        return {"status": "error", "message": str(e)}
+    except Exception as e:
+        logger.error(f"Неожиданная ошибка при сбросе пароля: {str(e)}", exc_info=True)
+        return {"status": "error", "message": "Произошла неожиданная ошибка при сбросе пароля"}

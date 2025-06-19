@@ -6,21 +6,26 @@ from rest_framework.viewsets import GenericViewSet
 from rest_framework.mixins import CreateModelMixin
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth.password_validation import validate_password
+from rest_framework import serializers
 
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 from drf_spectacular.types import OpenApiTypes
 from django_ratelimit.decorators import ratelimit
 from django.utils.decorators import method_decorator
 
-from apps.accounts.serializers import CreateUserSerializer, ChangePasswordSerializer
+from apps.accounts.serializers import CreateUserSerializer, ChangePasswordSerializer, ResetPasswordConfirmSerializer, VerifyEmailSerializer
+from apps.accounts.utils import get_user_from_token
+
+
 from apps.accounts.models import User
 
-from apps.accounts.tasks import verify_email_task
+from apps.accounts.tasks import verify_email_task, send_reset_password_email_task, reset_password_task
 
 
 tag = 'Аутентификация'
 
-@method_decorator(ratelimit(key='ip', rate='100/24h', block=True), name='create')  # Ограничение количества запросов 1 раз в 24 часа
+
+@method_decorator(ratelimit(key='ip', rate='100/24h', block=True), name='create')  # Ограничение количества запросов 100 раз в 24 часа
 class RegisterAPIView(CreateModelMixin, GenericViewSet):
     queryset = User.objects.all()
     serializer_class = CreateUserSerializer
@@ -43,13 +48,13 @@ class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
 
 
-@method_decorator(ratelimit(key='ip', rate='500/24h', block=True), name='patch')  # Ограничение количества запросов 5 раз в 24 часа
+@method_decorator(ratelimit(key='ip', rate='100/24h', block=True), name='patch')  # Ограничение количества запросов 100 раз в 24 часа
 class ChangePasswordAPIView(APIView):
     permission_classes = [IsAuthenticated]    # Только аутентифицированные пользователи могут изменять пароль
 
     @extend_schema(
         summary="Изменение пароля",
-        description="Эндпоинт для изменения пароля пользователя",
+        description="Эндпоинт для изменения пароля пользователя только для аутентифицированных пользователей",
         request=ChangePasswordSerializer,                          # добавляем схему запроса сериализатора
         tags=[tag],
     )
@@ -70,7 +75,7 @@ class ChangePasswordAPIView(APIView):
         return Response({"message": "Пароль успешно изменен"}, status=200)
 
 
-@method_decorator(ratelimit(key='ip', rate='100/24h', block=True), name='get')  # Ограничение количества запросов 1 раз в 24 часа
+@method_decorator(ratelimit(key='ip', rate='100/24h', block=True), name='get')  # Ограничение количества запросов 100 раз в 24 часа
 class VerifyEmailView(APIView):
     @extend_schema(
         summary="Подтверждение email",
@@ -96,3 +101,50 @@ class VerifyEmailView(APIView):
         task_result = verify_email_task.delay(token)  # Запуск задачи для подтверждения email
 
         return Response({"message": "После подтверждения email вам придет письмо об активации аккаунта"}, status=202)
+
+
+@method_decorator(ratelimit(key='ip', rate='100/24h', block=True), name='post')  # Ограничение количества запросов 100 раз в 24 часа
+class RequestResetPasswordView(APIView):
+    """
+    Эндпоинт для отправки запроса на сброс пароля.
+    """
+    @extend_schema(
+        summary="Запрос на сброс пароля по email",
+        description="Эндпоинт для отправки ссылки на сброс пароля на указанный email",
+        request=VerifyEmailSerializer,    # добавляем схему запроса сериализатора
+        tags=[tag],
+    )
+    def post(self, request, *args, **kwargs):
+        # Обработка запроса на сброс пароля
+        email = request.data.get("email")
+        user = User.objects.get_or_none(email=email, is_verified=True)
+        if not user:
+            raise serializers.ValidationError("Верифицированный пользователь с таким email не найден")
+
+        task_result = send_reset_password_email_task.delay(user.id)  # Запуск задачи для отправки письма
+
+        return Response({"message": "Письмо для сброса пароля отправлено"}, status=200)
+
+
+@method_decorator(ratelimit(key='ip', rate='100/24h', block=True), name='post')  # Ограничение количества запросов 100 раз в 24 часа
+class ResetPasswordConfirmAPIView(APIView):
+    """
+    Эндпоинт для подтверждения сброса пароля и установки нового.
+    """
+    @extend_schema(
+        summary="Сброс пароля по токену",
+        description="Подтверждение сброса пароля и установка нового",
+        request=ResetPasswordConfirmSerializer,  # добавляем схему запроса сериализатора
+        tags=[tag],
+    )
+    def post(self, request):
+        token = request.data.get("token")
+        new_password = request.data.get("password")
+
+        user = get_user_from_token(token)
+        if not user:
+            return Response({"error": "Неверный или просроченный токен"}, status=400)
+
+        task_result = reset_password_task.delay(user.id, new_password)  # Запуск задачи для установки нового пароля
+
+        return Response({"message": "Вам придет письмо с подтверждением установки нового пароля"}, status=200)
