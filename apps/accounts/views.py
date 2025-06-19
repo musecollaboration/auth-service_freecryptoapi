@@ -51,6 +51,7 @@ class MyTokenObtainPairView(TokenObtainPairView):
 @method_decorator(ratelimit(key='ip', rate='100/24h', block=True), name='patch')  # Ограничение количества запросов 100 раз в 24 часа
 class ChangePasswordAPIView(APIView):
     permission_classes = [IsAuthenticated]    # Только аутентифицированные пользователи могут изменять пароль
+    serializer_class = ChangePasswordSerializer
 
     @extend_schema(
         summary="Изменение пароля",
@@ -108,6 +109,7 @@ class RequestResetPasswordView(APIView):
     """
     Эндпоинт для отправки запроса на сброс пароля.
     """
+    serializer_class = VerifyEmailSerializer
     @extend_schema(
         summary="Запрос на сброс пароля по email",
         description="Эндпоинт для отправки ссылки на сброс пароля на указанный email",
@@ -131,6 +133,7 @@ class ResetPasswordConfirmAPIView(APIView):
     """
     Эндпоинт для подтверждения сброса пароля и установки нового.
     """
+    serializer_class = ResetPasswordConfirmSerializer
     @extend_schema(
         summary="Сброс пароля по токену",
         description="Подтверждение сброса пароля и установка нового",

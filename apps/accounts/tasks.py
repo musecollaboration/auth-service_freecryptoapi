@@ -7,6 +7,8 @@ import logging
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 import smtplib
+import redis
+from django.utils import timezone
 
 from apps.accounts.models import User
 
@@ -169,3 +171,54 @@ def reset_password_task(user_id, new_password):
     except Exception as e:
         logger.error(f"Неожиданная ошибка при сбросе пароля: {str(e)}", exc_info=True)
         return {"status": "error", "message": "Произошла неожиданная ошибка при сбросе пароля"}
+
+
+redis_client = redis.StrictRedis(host='localhost', port=6379, db=4)
+
+
+@shared_task
+def send_password_changes_email(user_id):
+    """
+    Celery-задача для отправки письма с информацией о смене пароля.
+    :param user_id: id пользователя, для которого нужно отправить письмо
+    :return: словарь с результатом выполнения задачи
+    """
+    logger.info(f"Запуск задачи отправки письма о смене пароля, user_id={user_id}")
+
+    redis_key = f"password_changed_email_sent:{user_id}"
+    if redis_client.get(redis_key):
+        logger.warning(f"Письмо уже отправлялось недавно пользователю id={user_id}")
+        return {"status": "skipped", "message": "Письмо уже отправлено ранее"}
+
+    try:
+        user = User.objects.get(id=user_id)
+        current_time = timezone.now().strftime("%d.%m.%Y %H:%M")
+
+        subject = "Информация о смене пароля"
+        message = (
+            f"Здравствуйте, {user.email}!\n\n"
+            f"Ваш пароль был изменён {current_time}.\n"
+            f"Если вы не меняли пароль — срочно обратитесь в поддержку.\n\n"
+            f"С уважением,\nКоманда поддержки Crypto API"
+        )
+
+        send_mail(
+            subject,
+            message,
+            settings.DEFAULT_FROM_EMAIL,
+            [user.email],
+            fail_silently=False,
+        )
+
+        redis_client.setex(redis_key, 600, "sent")  # Блокировка на 10 минут
+        logger.info(f"Письмо успешно отправлено пользователю id={user_id}")
+
+        return {"status": "success", "message": "Письмо отправлено"}
+
+    except User.DoesNotExist:
+        logger.error(f"Пользователь с id={user_id} не найден")
+        return {"status": "error", "message": "Пользователь не найден"}
+
+    except Exception as e:
+        logger.error(f"Ошибка при отправке письма: {str(e)}", exc_info=True)
+        return {"status": "error", "message": "Произошла неожиданная ошибка"}
