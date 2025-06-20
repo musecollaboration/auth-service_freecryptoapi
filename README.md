@@ -78,6 +78,7 @@ project_freecryptoapi/
 │   │   ├── managers.py    # Кастомный менеджер пользователей
 │   │   ├── models.py      # Модель пользователя
 │   │   ├── serializers.py # Сериализаторы
+│   │   ├── signals.py     # Сигналы
 │   │   ├── tasks.py       # Celery задачи
 │   │   ├── urls.py        # URL-маршруты приложения
 │   │   ├── utils.py       # Вспомогательные функции
@@ -89,7 +90,8 @@ project_freecryptoapi/
 │       ├── admin.py
 │       ├── apps.py
 │       ├── managers.py    # Общие менеджеры
-│       └── models.py      # Общие модели
+│       ├── models.py      # Общие модели
+│       └── utils.py       # Вспомогательные функции
 │
 ├── manage.py
 └── requirements.txt       # Зависимости проекта
