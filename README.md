@@ -56,6 +56,8 @@ Crypto API - это RESTful API, разработанный на Django REST Fra
    celery -A core beat -l info
 
 ## Структура проекта
+
+```bash
 project_freecryptoapi/
 │
 ├── core/                  # Основной проект Django
@@ -91,6 +93,7 @@ project_freecryptoapi/
 │
 ├── manage.py
 └── requirements.txt       # Зависимости проекта
+```
 
 ## API Endpoints
 
