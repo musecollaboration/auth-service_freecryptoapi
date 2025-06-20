@@ -9,6 +9,8 @@ from django.contrib.auth.password_validation import validate_password
 import smtplib
 import redis
 from django.utils import timezone
+from datetime import timedelta
+
 
 from apps.accounts.models import User
 
@@ -173,7 +175,7 @@ def reset_password_task(user_id, new_password):
         return {"status": "error", "message": "Произошла неожиданная ошибка при сбросе пароля"}
 
 
-redis_client = redis.StrictRedis(host='localhost', port=6379, db=4)  # Используем базу 4 для Redis 
+redis_client = redis.StrictRedis(host='localhost', port=6379, db=4)  # Используем базу 4 для Redis
 
 
 @shared_task
@@ -210,7 +212,7 @@ def send_password_changes_email(user_id):
             fail_silently=False,
         )
 
-        redis_client.setex(redis_key, 600, "sent")  # Блокировка на 10 минут отправки письма 
+        redis_client.setex(redis_key, 600, "sent")  # Блокировка на 10 минут отправки письма
         logger.info(f"Письмо успешно отправлено пользователю id={user_id}")
 
         return {"status": "success", "message": "Письмо отправлено"}
@@ -222,3 +224,17 @@ def send_password_changes_email(user_id):
     except Exception as e:
         logger.error(f"Ошибка при отправке письма: {str(e)}", exc_info=True)
         return {"status": "error", "message": "Произошла неожиданная ошибка"}
+
+
+@shared_task
+def delete_unverified_users():
+    '''
+    Удаление пользователей без подтверждения почты в течении 48 часов
+    '''
+    logger.info("Удаление пользователей без подтверждения почты")
+    time_threshold = timezone.now() - timedelta(hours=48)
+    unverified_users = User.objects.filter(is_verified=False, created_at__lt=time_threshold)
+    deleted_count = unverified_users.count()
+    unverified_users.delete()
+    logger.info(f"Удалено {deleted_count} пользователей без подтверждения почты")
+    return f'Удалено {deleted_count} пользователей без подтверждения почты'

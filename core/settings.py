@@ -77,6 +77,7 @@ INSTALLED_APPS = [
     'drf_spectacular',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
+    'django_celery_beat',
 
     'apps.common.apps.CommonConfig',
     'apps.accounts.apps.AccountsConfig',
