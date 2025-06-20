@@ -40,8 +40,8 @@ Crypto API - это RESTful API, разработанный на Django REST Fra
    pip install -r requirements.txt
 
 4. Создайте файл `.env` в директории `core` и добавьте следующие переменные окружения:
-   SECRET_KEY=<ваш_секретный_ключ>
-   EMAIL_HOST_PASSWORD=<пароль_для_почтового_сервера>
+   - SECRET_KEY=<ваш_секретный_ключ>
+   - EMAIL_HOST_PASSWORD=<пароль_для_почтового_сервера>
 
 5. Примените миграции:
    python manage.py migrate
