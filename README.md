@@ -29,7 +29,7 @@ Crypto API - это RESTful API, разработанный на Django REST Fra
 
 1. Клонируйте репозиторий:
    git clone <URL репозитория>
-   cd project_freecryptoapi
+   cd auth-service_freecryptoapi
 
 2. Создайте и активируйте виртуальное окружение:
    python -m venv venv

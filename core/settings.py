@@ -81,6 +81,7 @@ INSTALLED_APPS = [
 
     'apps.common.apps.CommonConfig',
     'apps.accounts.apps.AccountsConfig',
+    'apps.crypto.apps.CryptoConfig',
 ]
 
 MIDDLEWARE = [
