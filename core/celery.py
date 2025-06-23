@@ -23,6 +23,13 @@ def debug_task(self):
 app.conf.beat_schedule = {
     'delete-unverified-users-every-day': {
         'task': 'apps.accounts.tasks.delete_unverified_users',
-        'schedule': crontab(hour=0, minute=0),  # Выполнять каждый день в полночь
+        'schedule': crontab(hour=0, minute=0),  # Выполнять каждый день в 00:00
+    },
+}
+
+app.conf.beat_schedule = {
+    'update-supported-symbols-daily': {
+        'task': 'apps.crypto.tasks.fetch_supported_symbols',
+        'schedule': crontab(hour=0, minute=0),  # Выполнять каждый день в 00:00
     },
 }

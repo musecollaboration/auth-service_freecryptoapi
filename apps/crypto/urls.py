@@ -3,5 +3,5 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('', views.CryptoAPIView.as_view(), name='crypto'),
+    path("price/<str:symbol>/", views.CryptoPriceAPIView.as_view(), name="crypto-price"),
 ]

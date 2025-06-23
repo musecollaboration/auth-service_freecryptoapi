@@ -212,7 +212,12 @@ CACHES = {
         'BACKEND': 'django.core.cache.backends.redis.RedisCache',
         'LOCATION': 'redis://localhost:6379/2',                     # 2 - кэш для ratelimit
     },
+    'crypto': {
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        'LOCATION': 'redis://localhost:6379/3',                     # 3 - кэш для криптовалют
+    },
 }
+
 
 # Настройки ratelimit
 RATELIMIT_USE_CACHE = 'cache-for-ratelimiting'  # Привязываем ratelimit к отдельному кэшу
@@ -229,7 +234,7 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 SERVER_EMAIL = EMAIL_HOST_USER
-
+DEBUG
 SITE_URL = 'http://localhost:8000'  # Измените на реальный URL вашего сайта, при деплое
 
 
@@ -244,3 +249,15 @@ CELERY_TIMEZONE = "UTC"
 CELERY_TASK_TRACK_STARTED = True           # Отслеживание начала выполнения задач
 CELERY_TASK_ALWAYS_EAGER = False           # Если False, задачи отправляются в очередь и обрабатываются воркером.
 CELERY_TASK_RESULT_EXPIRES = 3600          # Время жизни результатов задач в секундах
+
+
+# Настройки Coingecko API
+COINGECKO_API_KEY = os.getenv("COINGECKO_API_KEY")
+
+
+# Настройки RabbitMQ
+RABBITMQ_URL = "amqp://guest:guest@localhost:5672/"  # URL подключения к RabbitMQ
+
+
+# Настройки режима разработки для приложения crypto
+API_ALLOW_FALLBACK = True if DEBUG else False # на продакшене нужно устанавливать False
