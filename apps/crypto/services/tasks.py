@@ -30,5 +30,5 @@ def fetch_supported_symbols(pages=4):
             if symbol not in symbol_map:  # берём только первого (с большим cap'ом)
                 symbol_map[symbol] = entry["id"]
 
-    caches["crypto"].set("symbol_map", json.dumps(symbol_map), timeout=86400)
+    caches["crypto"].set("symbol_map", json.dumps(symbol_map), timeout=86400)  # кэшируем на 24 часа
     return f"{len(symbol_map)} symbols saved"
