@@ -147,7 +147,7 @@ auth-service_freecryptoapi/
 
 ### Криптовалюты
 
-1. Получение курса криптовалюты: GET /api/v1/crypto/<symbol>/
+1. Получение курса криптовалюты: GET `/api/v1/crypto/<symbol>/`
 
 ## Теги для документации и API
 
